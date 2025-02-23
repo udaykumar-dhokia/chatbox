@@ -10,6 +10,7 @@ class InputField extends StatefulWidget {
   final List<Model> models;
   final Model? selectedModel;
   final ValueChanged<Model?> onModelChange;
+  final VoidCallback onNewChat;
 
   const InputField({
     Key? key,
@@ -18,6 +19,7 @@ class InputField extends StatefulWidget {
     required this.models,
     required this.selectedModel,
     required this.onModelChange,
+    required this.onNewChat,
   }) : super(key: key);
 
   @override
@@ -43,6 +45,8 @@ class _InputFieldState extends State<InputField> {
 
   @override
   Widget build(BuildContext context) {
+    var screenWidth = MediaQuery.of(context).size.width;
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -56,7 +60,7 @@ class _InputFieldState extends State<InputField> {
           ),
         ],
       ),
-      margin: const EdgeInsets.symmetric(horizontal: 200, vertical: 20),
+      margin: EdgeInsets.symmetric(horizontal: screenWidth * 0.1, vertical: 20),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -87,35 +91,78 @@ class _InputFieldState extends State<InputField> {
             children: [
               Row(
                 children: [
-                  HugeIcon(
-                    icon: HugeIcons.strokeRoundedRobotic,
-                    color: AppColors.black,
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.transparent),
-                    ),
-                    child: DropdownButton<Model>(
-                      value: widget.selectedModel,
-                      underline: SizedBox(),
-                      items:
-                          widget.models.map((Model model) {
-                            return DropdownMenuItem<Model>(
-                              value: model,
-                              child: Text(
-                                model.model.toString(),
-                                style: AppFonts.primaryFont(
-                                  color: AppColors.black,
+                  SizedBox(
+                    child: Row(
+                      children: [
+                        InkWell(
+                          onTap: widget.onNewChat,
+                          child: Container(
+                            padding: const EdgeInsets.only(
+                              left: 15,
+                              right: 15,
+                              top: 10,
+                              bottom: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.buttonColor,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              children: [
+                                HugeIcon(
+                                  icon: HugeIcons.strokeRoundedAdd01,
+                                  color: AppColors.white,
                                 ),
-                              ),
-                            );
-                          }).toList(),
-                      onChanged: widget.onModelChange,
-                      dropdownColor: AppColors.white,
-                      style: AppFonts.primaryFont(color: Colors.black),
+                                SizedBox(width: 5),
+                                Text(
+                                  'New',
+                                  style: AppFonts.primaryFont(
+                                    color: AppColors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 10.0),
+                  SizedBox(
+                    child: Row(
+                      children: [
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedRobotic,
+                          color: AppColors.black,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.only(left: 10, right: 15),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.transparent),
+                          ),
+                          child: DropdownButton<Model>(
+                            value: widget.selectedModel,
+                            underline: SizedBox(),
+                            items:
+                                widget.models.map((Model model) {
+                                  return DropdownMenuItem<Model>(
+                                    value: model,
+                                    child: Text(
+                                      model.model.toString(),
+                                      style: AppFonts.primaryFont(
+                                        color: AppColors.black,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                            onChanged: widget.onModelChange,
+                            dropdownColor: AppColors.white,
+                            style: AppFonts.primaryFont(color: Colors.black),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],

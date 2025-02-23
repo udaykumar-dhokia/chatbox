@@ -83,15 +83,15 @@ class MessageTile extends StatelessWidget {
                 ),
                 Row(
                   children: [
-                    if (!isUser && onReanswer != null)
-                      IconButton(
-                        icon: Icon(
-                          Icons.restart_alt_rounded,
-                          color: Colors.grey,
-                          size: 16,
-                        ),
-                        onPressed: onReanswer,
-                      ),
+                    // if (!isUser && onReanswer != null)
+                    //   IconButton(
+                    //     icon: Icon(
+                    //       Icons.restart_alt_rounded,
+                    //       color: Colors.grey,
+                    //       size: 16,
+                    //     ),
+                    //     onPressed: onReanswer,
+                    //   ),
                     IconButton(
                       icon: Icon(
                         Icons.copy_rounded,
