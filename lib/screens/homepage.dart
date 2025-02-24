@@ -20,6 +20,7 @@ class _HomepageState extends State<Homepage> {
   List<Model> models = [];
   bool isLoading = true;
   bool isGenerating = false;
+  bool isChatStarted = false;
   Model? selectedModel;
   String errorMessage = '';
 
@@ -57,10 +58,21 @@ class _HomepageState extends State<Homepage> {
     });
 
     try {
+      String context = '';
+      if (_messages.length >= 5) {
+        context = _messages
+            .sublist(_messages.length - 5)
+            .map((msg) => '${msg['role']}: ${msg['message']}')
+            .join('\n');
+      }
+
       final responseStream = client.generateCompletionStream(
         request: GenerateCompletionRequest(
           model: selectedModel!.model.toString(),
-          prompt: promptMsg,
+          prompt:
+              context.isNotEmpty
+                  ? 'The context is provided as:\n $context\nNew prompt: $promptMsg \n generate the completion accordingly.'
+                  : promptMsg,
         ),
       );
 
@@ -68,10 +80,14 @@ class _HomepageState extends State<Homepage> {
       await for (var response in responseStream) {
         buffer.write(response.response);
         setState(() {
-          if (_messages.isNotEmpty && _messages.last['role'] == 'Ollama') {
+          if (_messages.isNotEmpty &&
+              _messages.last['role'] == '${selectedModel!.model}') {
             _messages.last['message'] = buffer.toString();
           } else {
-            _messages.add({'role': 'Ollama', 'message': buffer.toString()});
+            _messages.add({
+              'role': '${selectedModel!.model}',
+              'message': buffer.toString(),
+            });
           }
         });
       }
@@ -89,6 +105,7 @@ class _HomepageState extends State<Homepage> {
     if (_controller.text.isNotEmpty && selectedModel != null) {
       setState(() {
         _messages.add({'role': 'You', 'message': _controller.text});
+        isChatStarted = true;
       });
       _generateCompletion(_controller.text);
       _controller.clear();
@@ -123,7 +140,7 @@ class _HomepageState extends State<Homepage> {
               'NOTE: The performance completely depends on the model installed and the configuration of your setup.',
               style: AppFonts.primaryFont(
                 color: Colors.grey[500]!,
-                fontSize: width * 0.009,
+                fontSize: width * 0.008,
               ),
             ),
           ],
@@ -153,6 +170,14 @@ class _HomepageState extends State<Homepage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                SizedBox(height: 8.0),
+                Text(
+                  'You cannot change the model once you start chatting.',
+                  style: AppFonts.primaryFont(
+                    color: Colors.grey[500]!,
+                    fontSize: width * 0.008,
+                  ),
+                ),
               ],
             )
           else
@@ -168,9 +193,11 @@ class _HomepageState extends State<Homepage> {
                   }
                   final message = _messages[index];
                   final isUser = message['role'] == 'You';
+                  final model = message['role'];
                   return MessageTile(
                     message: message['message']!,
                     isUser: isUser,
+                    modelName: model,
                     onCopy: () => _copyToClipboard(message['message']!),
                     onReanswer: () => _reanswerMessage(message['message']!),
                   );
@@ -183,15 +210,20 @@ class _HomepageState extends State<Homepage> {
               onSendMessage: _sendMessage,
               models: models,
               selectedModel: selectedModel,
+              isGenerating: isGenerating,
+              isChatStarted: isChatStarted,
               onNewChat: () {
                 setState(() {
                   _messages.clear();
+                  isChatStarted = false;
                 });
               },
               onModelChange: (newValue) {
-                setState(() {
-                  selectedModel = newValue;
-                });
+                if (!isChatStarted) {
+                  setState(() {
+                    selectedModel = newValue;
+                  });
+                }
               },
             ),
         ],

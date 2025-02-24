@@ -11,6 +11,8 @@ class InputField extends StatefulWidget {
   final Model? selectedModel;
   final ValueChanged<Model?> onModelChange;
   final VoidCallback onNewChat;
+  final bool isChatStarted;
+  final bool isGenerating;
 
   const InputField({
     Key? key,
@@ -20,6 +22,8 @@ class InputField extends StatefulWidget {
     required this.selectedModel,
     required this.onModelChange,
     required this.onNewChat,
+    required this.isChatStarted,
+    required this.isGenerating,
   }) : super(key: key);
 
   @override
@@ -83,7 +87,9 @@ class _InputFieldState extends State<InputField> {
                 borderRadius: BorderRadius.circular(20),
               ),
             ),
-            onSubmitted: (_) => widget.onSendMessage(),
+            onSubmitted:
+                widget.isGenerating ? null : (_) => widget.onSendMessage(),
+            // enabled: !widget.isGenerating,
           ),
           SizedBox(height: 8.0),
           Row(
@@ -157,7 +163,10 @@ class _InputFieldState extends State<InputField> {
                                     ),
                                   );
                                 }).toList(),
-                            onChanged: widget.onModelChange,
+                            onChanged:
+                                widget.isChatStarted
+                                    ? null
+                                    : widget.onModelChange,
                             dropdownColor: AppColors.white,
                             style: AppFonts.primaryFont(color: Colors.black),
                           ),
@@ -171,11 +180,11 @@ class _InputFieldState extends State<InputField> {
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedSent,
                   color:
-                      widget.controller.text.isEmpty
+                      widget.controller.text.isEmpty || widget.isGenerating
                           ? AppColors.grey
                           : AppColors.buttonColor,
                 ),
-                onPressed: widget.onSendMessage,
+                onPressed: widget.isGenerating ? null : widget.onSendMessage,
               ),
             ],
           ),

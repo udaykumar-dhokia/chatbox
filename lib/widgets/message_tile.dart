@@ -13,6 +13,7 @@ class MessageTile extends StatelessWidget {
   final VoidCallback? onCopy;
   final VoidCallback? onReanswer;
   final Model? model;
+  final String? modelName;
 
   const MessageTile({
     Key? key,
@@ -22,6 +23,7 @@ class MessageTile extends StatelessWidget {
     this.onCopy,
     this.onReanswer,
     this.model,
+    this.modelName = '',
   }) : super(key: key);
 
   @override
@@ -83,6 +85,7 @@ class MessageTile extends StatelessWidget {
                 ),
                 Row(
                   children: [
+                    if (modelName != null) Text(modelName!),
                     // if (!isUser && onReanswer != null)
                     //   IconButton(
                     //     icon: Icon(
