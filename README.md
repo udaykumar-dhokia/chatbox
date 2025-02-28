@@ -9,6 +9,32 @@ Chatbox is a Flutter project that provides a graphical user interface (GUI) for 
 ![Chatbox Screenshot](lib/assets/1.png)
 ![Chatbox Screenshot](lib/assets/3.png)
 
+## Folder Structure
+
+```
+lib/
+├── components/
+│   ├── sidebar.dart
+├── constants/
+│   ├── app_colors.dart
+│   ├── app_fonts.dart
+├── helpers/
+│   ├── database_helper.dart
+├── models/
+│   ├── message_model.dart
+├── providers/
+│   ├── chat_provider.dart
+├── screens/
+│   ├── homepage.dart
+├── widgets/
+│   ├── input_field.dart
+│   ├── message_tile.dart
+├── assets/
+│   ├── 1.png
+│   ├── 3.png
+├── main.dart
+```
+
 ## Features
 
 - **Model Selection**: Choose from a list of available LLM models.
