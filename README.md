@@ -1,5 +1,9 @@
 # Chatbox
 
+![Flutter](https://img.shields.io/badge/Flutter-02569B?style=for-the-badge&logo=flutter&logoColor=white)
+![Sqflite](https://img.shields.io/badge/Sqflite-FFCA28?style=for-the-badge&logo=sqlite&logoColor=black)
+![Ollama](https://img.shields.io/badge/Ollama-000000?style=for-the-badge&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABq0lEQVR4Ae2XvUoDQRjHfxF9gdwoVRAUFP6D6Ah6iGgoWjL6CF6CF6ChaqXoLDo6C/oIeoQfgHThEBHbKzmy98mfMzuzOTMjEC5n5vZnJ5/zHvu+8M/UXDdF9bdKDvBaADRA9cOA4AfAh2LYyDzAQgDqZzkm7ZTRIG4qHVNE1okYhzjGXYoHaLTxG+kUdBpDQ6/xLfSG2AHkGGxzMm0G6FVcLzfq7fyzrYL0CDmsMJkzPHdbKheNzHD+HzMeKdnGE/V9YKafJvMNiZlAO0cg+saWWmKOB5PM39JgHoA1jB/HMiAYEX9Z1ZG0C0NkFT7FQ6MTOXrChH2/tsSutVW6whN/sdKPgytsRDwbWzTHzAxnSmbAOskqaFeu0CGHpBrAbRqqAO2cGdz2o0QAbADiDtvX4FBdnmHo9vK2nKqnpS0EYH5F2mEToQkwBrFLROUth5IMY7nOGLPM7JAljtuRHcNWA9LYAeTjDqMK1WB4t6MDZGAkprB7PMZ+YZr3Zf8th9yI4XtHpDXAp3s7R8RmOncPhj7L0H02P0WtNcRuH+O7iFV2gEXeN37u8y/VpCEXOAAAAAElFTkSuQmCC)
+
 Chatbox is a Flutter project that provides a graphical user interface (GUI) for running large language models (LLMs) using the Ollama. This application allows users to interact with various LLM models, send messages, and receive responses in a chat-like interface.
 
 ![Chatbox Screenshot](lib/assets/1.png)
