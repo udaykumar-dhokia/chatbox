@@ -1,11 +1,16 @@
 import 'package:chatbox/layouts/layout.dart';
+import 'package:chatbox/provider/chat_provider.dart';
 import 'package:chatbox/screens/splash.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await windowManager.ensureInitialized();
+  sqfliteFfiInit();
+  databaseFactory = databaseFactoryFfi;
 
   WindowOptions windowOptions = WindowOptions(
     minimumSize: Size(800, 600),
@@ -19,7 +24,9 @@ void main() async {
     await windowManager.focus();
   });
 
-  runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(create: (context) => ChatProvider(), child: MyApp()),
+  );
 }
 
 class MyApp extends StatelessWidget {
