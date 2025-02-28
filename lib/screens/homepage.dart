@@ -1,10 +1,13 @@
 import 'package:chatbox/constants/app_colors.dart';
 import 'package:chatbox/constants/app_fonts.dart';
+import 'package:chatbox/helpers/database_helper.dart';
+import 'package:chatbox/provider/chat_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:chatbox/widgets/message_tile.dart';
 import 'package:chatbox/widgets/input_field.dart';
 import 'package:ollama_dart/ollama_dart.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -17,17 +20,32 @@ class _HomepageState extends State<Homepage> {
   final TextEditingController _controller = TextEditingController();
   final List<Map<String, String>> _messages = [];
   final OllamaClient client = OllamaClient();
+  final DatabaseHelper dbHelper = DatabaseHelper();
   List<Model> models = [];
   bool isLoading = true;
   bool isGenerating = false;
   bool isChatStarted = false;
   Model? selectedModel;
   String errorMessage = '';
+  String chatTitle = '';
+  int? currentChatId;
 
   @override
   void initState() {
     super.initState();
     _listModels();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final chatProvider = Provider.of<ChatProvider>(context);
+    if (chatProvider.currentChatId != currentChatId) {
+      _loadChatMessages(chatProvider.currentChatId!);
+      setState(() {
+        chatTitle = chatProvider.chatTitle;
+      });
+    }
   }
 
   Future<void> _listModels() async {
@@ -49,6 +67,56 @@ class _HomepageState extends State<Homepage> {
         errorMessage = 'Error fetching models: $e';
       });
     }
+  }
+
+  Future<void> _loadChatMessages(int chatId) async {
+    List<Map<String, dynamic>> messages = await dbHelper.getMessages(chatId);
+    setState(() {
+      currentChatId = chatId;
+      _messages.clear();
+      _messages.addAll(
+        messages.map(
+          (msg) => {'role': msg['sender'], 'message': msg['message']},
+        ),
+      );
+    });
+  }
+
+  Future<void> _startNewChat() async {
+    int chatId = await dbHelper.insertChat(
+      "New Chat",
+      selectedModel!.model.toString(),
+    );
+    setState(() {
+      currentChatId = chatId;
+      _messages.clear();
+      isChatStarted = true;
+      chatTitle = "New Chat";
+    });
+    Provider.of<ChatProvider>(
+      context,
+      listen: false,
+    ).setCurrentChatId(chatId, "New Chat");
+    Provider.of<ChatProvider>(context, listen: false).loadChats();
+  }
+
+  void _sendMessage() async {
+    String userMessage = _controller.text;
+    _controller.clear();
+
+    if (currentChatId == null) {
+      await _startNewChat();
+    }
+
+    // Save user message
+    await dbHelper.insertMessage(currentChatId!, "You", userMessage);
+
+    setState(() {
+      _messages.add({'role': 'You', 'message': userMessage});
+    });
+
+    // Generate AI response
+    _generateCompletion(userMessage);
   }
 
   Future<void> _generateCompletion(String promptMsg) async {
@@ -91,9 +159,18 @@ class _HomepageState extends State<Homepage> {
           }
         });
       }
+
+      // Save AI response
+      await dbHelper.insertMessage(
+        currentChatId!,
+        selectedModel!.model.toString(),
+        buffer.toString(),
+      );
+
       setState(() {
         isGenerating = false;
       });
+      _generateChatTitle();
     } catch (e) {
       setState(() {
         isGenerating = false;
@@ -101,14 +178,27 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
-  void _sendMessage() {
-    if (_controller.text.isNotEmpty && selectedModel != null) {
+  void _generateChatTitle() async {
+    if (_messages.isNotEmpty &&
+        selectedModel != null &&
+        (chatTitle == 'New Chat' || chatTitle.isEmpty)) {
+      final firstUserMessage = _messages.firstWhere(
+        (msg) => msg['role'] == 'You',
+        orElse: () => {'message': ''},
+      );
+      final newTitle =
+          '${firstUserMessage['message']?.substring(0, 20) ?? 'Chat'}...';
       setState(() {
-        _messages.add({'role': 'You', 'message': _controller.text});
-        isChatStarted = true;
+        chatTitle = newTitle;
       });
-      _generateCompletion(_controller.text);
-      _controller.clear();
+      if (currentChatId != null) {
+        await dbHelper.updateChatTitle(currentChatId!, newTitle);
+        Provider.of<ChatProvider>(
+          context,
+          listen: false,
+        ).setChatTitle(newTitle);
+      }
+      Provider.of<ChatProvider>(context, listen: false).loadChats();
     }
   }
 
@@ -151,6 +241,15 @@ class _HomepageState extends State<Homepage> {
         surfaceTintColor: AppColors.white,
         toolbarHeight: height * 0.1,
         backgroundColor: AppColors.primary,
+        centerTitle: true,
+        title: Text(
+          chatTitle.isNotEmpty ? chatTitle : '',
+          style: AppFonts.primaryFont(
+            color: AppColors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: width * 0.01,
+          ),
+        ),
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -168,14 +267,6 @@ class _HomepageState extends State<Homepage> {
                     color: AppColors.black,
                     fontSize: width * 0.034,
                     fontWeight: FontWeight.bold,
-                  ),
-                ),
-                SizedBox(height: 8.0),
-                Text(
-                  'You cannot change the model once you start chatting.',
-                  style: AppFonts.primaryFont(
-                    color: Colors.grey[500]!,
-                    fontSize: width * 0.008,
                   ),
                 ),
               ],
@@ -212,11 +303,8 @@ class _HomepageState extends State<Homepage> {
               selectedModel: selectedModel,
               isGenerating: isGenerating,
               isChatStarted: isChatStarted,
-              onNewChat: () {
-                setState(() {
-                  _messages.clear();
-                  isChatStarted = false;
-                });
+              onNewChat: () async {
+                await _startNewChat();
               },
               onModelChange: (newValue) {
                 if (!isChatStarted) {

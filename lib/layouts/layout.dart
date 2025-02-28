@@ -10,6 +10,8 @@ class Layout extends StatefulWidget {
 }
 
 class _LayoutState extends State<Layout> {
+  int? selectedChatId;
+
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.sizeOf(context).width;
@@ -19,10 +21,12 @@ class _LayoutState extends State<Layout> {
         children: [
           SizedBox(width: width * 0.13, height: height, child: Sidebar()),
           Expanded(
-            child: SizedBox(
-              width: width * 0.87,
-              height: height,
-              child: Homepage(),
+            child: Scaffold(
+              body: SizedBox(
+                width: width * 0.87,
+                height: height,
+                child: Homepage(),
+              ),
             ),
           ),
         ],

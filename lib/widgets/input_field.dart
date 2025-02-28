@@ -89,7 +89,6 @@ class _InputFieldState extends State<InputField> {
             ),
             onSubmitted:
                 widget.isGenerating ? null : (_) => widget.onSendMessage(),
-            // enabled: !widget.isGenerating,
           ),
           SizedBox(height: 8.0),
           Row(
@@ -163,10 +162,7 @@ class _InputFieldState extends State<InputField> {
                                     ),
                                   );
                                 }).toList(),
-                            onChanged:
-                                widget.isChatStarted
-                                    ? null
-                                    : widget.onModelChange,
+                            onChanged: widget.onModelChange,
                             dropdownColor: AppColors.white,
                             style: AppFonts.primaryFont(color: Colors.black),
                           ),

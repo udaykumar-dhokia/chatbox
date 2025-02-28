@@ -3,7 +3,6 @@
 Chatbox is a Flutter project that provides a graphical user interface (GUI) for running large language models (LLMs) using the Ollama. This application allows users to interact with various LLM models, send messages, and receive responses in a chat-like interface.
 
 ![Chatbox Screenshot](lib/assets/1.png)
-![Chatbox Screenshot](lib/assets/2.png)
 ![Chatbox Screenshot](lib/assets/3.png)
 
 ## Features
