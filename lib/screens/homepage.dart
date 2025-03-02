@@ -1,13 +1,23 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+
+import 'package:chatbox/components/predefined_queries.dart';
 import 'package:chatbox/constants/app_colors.dart';
 import 'package:chatbox/constants/app_fonts.dart';
+import 'package:chatbox/helpers/code_block.dart';
 import 'package:chatbox/helpers/database_helper.dart';
 import 'package:chatbox/provider/chat_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:chatbox/widgets/message_tile.dart';
 import 'package:chatbox/widgets/input_field.dart';
+import 'package:flutter_pty/flutter_pty.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:ollama_dart/ollama_dart.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:xterm/xterm.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -83,39 +93,53 @@ class _HomepageState extends State<Homepage> {
   }
 
   Future<void> _startNewChat() async {
-    int chatId = await dbHelper.insertChat(
-      "New Chat",
-      selectedModel!.model.toString(),
-    );
-    setState(() {
-      currentChatId = chatId;
-      _messages.clear();
-      isChatStarted = true;
-      chatTitle = "New Chat";
-    });
-    Provider.of<ChatProvider>(
-      context,
-      listen: false,
-    ).setCurrentChatId(chatId, "New Chat");
-    Provider.of<ChatProvider>(context, listen: false).loadChats();
+    if (selectedModel == null) {
+      setState(() {
+        errorMessage = 'No model selected. Please select a model.';
+      });
+      return;
+    }
+
+    if (_controller.text.isNotEmpty || _messages.isNotEmpty) {
+      int chatId = await dbHelper.insertChat(
+        "New Chat",
+        selectedModel!.model.toString(),
+      );
+      setState(() {
+        currentChatId = chatId;
+        _messages.clear();
+        isChatStarted = true;
+        chatTitle = "New Chat";
+      });
+      Provider.of<ChatProvider>(
+        context,
+        listen: false,
+      ).setCurrentChatId(chatId, "New Chat");
+      Provider.of<ChatProvider>(context, listen: false).loadChats();
+    }
   }
 
   void _sendMessage() async {
     String userMessage = _controller.text;
-    _controller.clear();
+
+    if (selectedModel == null) {
+      setState(() {
+        errorMessage = 'No model selected. Please select a model.';
+      });
+      return;
+    }
 
     if (currentChatId == null) {
       await _startNewChat();
     }
+    _controller.clear();
 
-    // Save user message
     await dbHelper.insertMessage(currentChatId!, "You", userMessage);
 
     setState(() {
       _messages.add({'role': 'You', 'message': userMessage});
     });
 
-    // Generate AI response
     _generateCompletion(userMessage);
   }
 
@@ -216,6 +240,11 @@ class _HomepageState extends State<Homepage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     var width = MediaQuery.sizeOf(context).width;
     var height = MediaQuery.sizeOf(context).height;
@@ -236,86 +265,199 @@ class _HomepageState extends State<Homepage> {
           ],
         ),
       ),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        surfaceTintColor: AppColors.white,
-        toolbarHeight: height * 0.1,
-        backgroundColor: AppColors.primary,
-        centerTitle: true,
-        title: Text(
-          chatTitle.isNotEmpty ? chatTitle : '',
-          style: AppFonts.primaryFont(
-            color: AppColors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: width * 0.01,
-          ),
-        ),
-      ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (isLoading)
-            Center(child: CircularProgressIndicator())
-          else if (errorMessage.isNotEmpty)
-            ErrorWidget(errorMessage)
-          else if (_messages.isEmpty && !isGenerating)
-            Column(
-              children: [
-                Text(
-                  'Hello 👋 there, What would you like to talk?',
+      appBar:
+          models.isNotEmpty
+              ? AppBar(
+                automaticallyImplyLeading: false,
+                surfaceTintColor: AppColors.white,
+                toolbarHeight: height * 0.1,
+                backgroundColor: AppColors.primary,
+                centerTitle: true,
+                title: Text(
+                  chatTitle.isNotEmpty ? chatTitle : '',
                   style: AppFonts.primaryFont(
                     color: AppColors.black,
-                    fontSize: width * 0.034,
                     fontWeight: FontWeight.bold,
+                    fontSize: width * 0.01,
                   ),
                 ),
-              ],
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                itemCount: _messages.length + (isGenerating ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == _messages.length && isGenerating) {
-                    return MessageTile(
-                      isGenerating: true,
-                      model: selectedModel,
-                    );
-                  }
-                  final message = _messages[index];
-                  final isUser = message['role'] == 'You';
-                  final model = message['role'];
-                  return MessageTile(
-                    message: message['message']!,
-                    isUser: isUser,
-                    modelName: model,
-                    onCopy: () => _copyToClipboard(message['message']!),
-                    onReanswer: () => _reanswerMessage(message['message']!),
-                  );
-                },
+              )
+              : null,
+      body:
+          models.isNotEmpty
+              ? Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (isLoading)
+                    Center(child: CircularProgressIndicator())
+                  else if (errorMessage.isNotEmpty)
+                    ErrorWidget(errorMessage)
+                  else if (_messages.isEmpty && !isGenerating)
+                    Column(
+                      children: [
+                        Text(
+                          'Hello 👋 there, What can I help with?',
+                          style: AppFonts.primaryFont(
+                            color: AppColors.black,
+                            fontSize: width * 0.034,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 20.0),
+                        PredefinedQueries(),
+                      ],
+                    )
+                  else
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _messages.length + (isGenerating ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == _messages.length && isGenerating) {
+                            return MessageTile(
+                              isGenerating: true,
+                              model: selectedModel,
+                            );
+                          }
+                          final message = _messages[index];
+                          final isUser = message['role'] == 'You';
+                          final model = message['role'];
+                          return MessageTile(
+                            message: message['message']!,
+                            isUser: isUser,
+                            modelName: model,
+                            onCopy: () => _copyToClipboard(message['message']!),
+                            onReanswer:
+                                () => _reanswerMessage(message['message']!),
+                          );
+                        },
+                      ),
+                    ),
+                  if (errorMessage.isEmpty)
+                    InputField(
+                      controller: _controller,
+                      onSendMessage: _sendMessage,
+                      models: models,
+                      selectedModel: selectedModel,
+                      isGenerating: isGenerating,
+                      isChatStarted: isChatStarted,
+                      onNewChat: () async {
+                        await _startNewChat();
+                      },
+                      onModelChange: (newValue) {
+                        if (!isChatStarted) {
+                          setState(() {
+                            selectedModel = newValue;
+                          });
+                        }
+                      },
+                    ),
+                ],
+              )
+              : Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Error Icon
+                      HugeIcon(
+                        icon: HugeIcons.strokeRoundedArtificialIntelligence03,
+                        color: AppColors.error,
+                      ),
+                      const SizedBox(height: 10),
+
+                      // Error Message
+                      Text(
+                        'No models found. Please install a model.',
+                        style: AppFonts.primaryFont(
+                          color: AppColors.error,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 20.0),
+
+                      // Documentation Header
+                      Text(
+                        'Available Models:',
+                        style: AppFonts.primaryFont(
+                          color: AppColors.black,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10.0),
+
+                      // Model 1: Mistral
+                      Text(
+                        '1. Mistral (Small, fast, and efficient model)',
+                        style: AppFonts.primaryFont(
+                          color: AppColors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      buildCodeBlock('ollama pull mistral'),
+
+                      // Model 2: Llama 2
+                      const SizedBox(height: 10.0),
+                      Text(
+                        '2. LLaMA 2 (Meta’s open-source language model)',
+                        style: AppFonts.primaryFont(
+                          color: AppColors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      buildCodeBlock('ollama pull llama2'),
+
+                      // Model 3: DeepSeek-R1
+                      const SizedBox(height: 10.0),
+                      Text(
+                        '3. DeepSeek-R1 (Optimized for reasoning tasks)',
+                        style: AppFonts.primaryFont(
+                          color: AppColors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      buildCodeBlock('ollama run deepseek-r1:7b'),
+
+                      const SizedBox(height: 20.0),
+
+                      // Restart Message
+                      Text(
+                        'After installing a model, restart this application.',
+                        style: AppFonts.primaryFont(
+                          color: AppColors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 20.0),
+
+                      InkWell(
+                        onTap:
+                            () => {
+                              Navigator.pushReplacementNamed(context, '/'),
+                            },
+                        child: Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.buttonColor,
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedReload,
+                            color: AppColors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          if (errorMessage.isEmpty)
-            InputField(
-              controller: _controller,
-              onSendMessage: _sendMessage,
-              models: models,
-              selectedModel: selectedModel,
-              isGenerating: isGenerating,
-              isChatStarted: isChatStarted,
-              onNewChat: () async {
-                await _startNewChat();
-              },
-              onModelChange: (newValue) {
-                if (!isChatStarted) {
-                  setState(() {
-                    selectedModel = newValue;
-                  });
-                }
-              },
-            ),
-        ],
-      ),
     );
   }
 }

@@ -28,6 +28,14 @@ class ChatProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> deleteChat(int chatId) async {
+    final dbHelper = DatabaseHelper();
+    await dbHelper.deleteChat(chatId);
+    _chats = List<Map<String, dynamic>>.from(_chats)
+      ..removeWhere((chat) => chat['id'] == chatId);
+    notifyListeners();
+  }
+
   Future<void> clearChats() async {
     final dbHelper = DatabaseHelper();
     await dbHelper.clearChats();

@@ -57,7 +57,7 @@ class _InputFieldState extends State<InputField> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.buttonColor.withOpacity(0.1),
+            color: AppColors.buttonColor.withValues(alpha: 0.1),
             spreadRadius: 0.1,
             blurRadius: 10,
             offset: Offset(0, 3),
@@ -180,7 +180,12 @@ class _InputFieldState extends State<InputField> {
                           ? AppColors.grey
                           : AppColors.buttonColor,
                 ),
-                onPressed: widget.isGenerating ? null : widget.onSendMessage,
+                onPressed:
+                    widget.controller.text.isEmpty
+                        ? null
+                        : widget.isGenerating
+                        ? null
+                        : widget.onSendMessage,
               ),
             ],
           ),

@@ -1,15 +1,15 @@
-import 'package:ollama_dart/ollama_dart.dart';
+// import 'package:ollama_dart/ollama_dart.dart';
 
-class OllamaClient {
-  final OllamaClient client = OllamaClient();
+// class OllamaClient {
+//   final OllamaClient client = OllamaClient();
 
-  Future<Model> listModels() async {
-    return await client.listModels();
-  }
+//   Future<Model> listModels() async {
+//     return await client.listModels();
+//   }
 
-  Stream<GenerateCompletionResponse> generateCompletionStream({
-    required GenerateCompletionRequest request,
-  }) {
-    return client.generateCompletionStream(request: request);
-  }
-}
+//   Stream<GenerateCompletionResponse> generateCompletionStream({
+//     required GenerateCompletionRequest request,
+//   }) {
+//     return client.generateCompletionStream(request: request);
+//   }
+// }

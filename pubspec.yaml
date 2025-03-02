@@ -48,6 +48,8 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.31
   sqflite_common_ffi: ^2.3.5
   webview_flutter_web: ^0.2.3+4
+  xterm: ^4.0.0
+  flutter_pty: ^0.4.2
 
 dev_dependencies:
   flutter_test:

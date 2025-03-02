@@ -36,20 +36,20 @@ class _SidebarState extends State<Sidebar> {
             color: AppColors.white,
             boxShadow: [
               BoxShadow(
-                color: AppColors.buttonColor.withOpacity(0.1),
+                color: AppColors.buttonColor.withValues(alpha: 0.1),
                 spreadRadius: 0.1,
                 blurRadius: 10,
                 offset: Offset(0, 3),
               ),
             ],
           ),
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(15.0),
           child: Column(
-            spacing: 15,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.start,
@@ -57,41 +57,27 @@ class _SidebarState extends State<Sidebar> {
                     children: [
                       HugeIcon(
                         icon: HugeIcons.strokeRoundedCodesandbox,
-                        color: AppColors.black,
+                        color: AppColors.buttonColor,
                         size: 40,
                       ),
                       const SizedBox(width: 4.0),
                       Text(
                         "v1.0.0",
-                        style: AppFonts.primaryFont(color: AppColors.grey),
+                        style: AppFonts.primaryFont(
+                          color: AppColors.buttonColor.withValues(alpha: 0.3),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20.0),
-                  Container(
-                    padding: const EdgeInsets.all(12.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.buttonColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedAdd01,
-                          color: AppColors.white,
-                        ),
-                        const SizedBox(width: 4.0),
-                        Text(
-                          'New Chat',
-                          style: AppFonts.primaryFont(
-                            color: AppColors.white,
-                            fontSize: width * 0.01,
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 30.0),
+                  Text(
+                    "History",
+                    style: AppFonts.primaryFont(
+                      fontWeight: FontWeight.bold,
+                      fontSize: width * 0.01,
                     ),
                   ),
+                  const SizedBox(height: 15),
                 ],
               ),
               Expanded(
@@ -102,26 +88,99 @@ class _SidebarState extends State<Sidebar> {
                           itemCount: chats.length,
                           itemBuilder: (context, index) {
                             final chat = chats[index];
-                            return ListTile(
-                              title: Text(
-                                chat['title'],
-                                overflow: TextOverflow.ellipsis,
-                                style: AppFonts.primaryFont(),
+                            return Tooltip(
+                              message: chat['title'],
+                              waitDuration: Duration(seconds: 1),
+                              textStyle: AppFonts.primaryFont(
+                                color: AppColors.white,
                               ),
-                              hoverColor: AppColors.grey,
-                              tileColor:
-                                  selectedChatId == chat['id']
-                                      ? AppColors.grey.withOpacity(0.2)
-                                      : Colors.transparent,
-                              onTap: () {
-                                setState(() {
-                                  selectedChatId = chat['id'];
-                                });
-                                Provider.of<ChatProvider>(
-                                  context,
-                                  listen: false,
-                                ).setCurrentChatId(chat['id'], chat['title']);
-                              },
+                              child: ListTile(
+                                title: Text(
+                                  chat['title'],
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppFonts.primaryFont(),
+                                ),
+                                hoverColor: AppColors.grey,
+                                tileColor:
+                                    selectedChatId == chat['id']
+                                        ? AppColors.grey.withOpacity(0.2)
+                                        : Colors.transparent,
+                                onTap: () {
+                                  setState(() {
+                                    selectedChatId = chat['id'];
+                                  });
+                                  Provider.of<ChatProvider>(
+                                    context,
+                                    listen: false,
+                                  ).setCurrentChatId(chat['id'], chat['title']);
+                                },
+                                trailing: PopupMenuButton<String>(
+                                  tooltip: "options",
+                                  color: AppColors.white,
+                                  shadowColor: AppColors.primary,
+                                  icon: HugeIcon(
+                                    icon: HugeIcons.strokeRoundedMoreHorizontal,
+                                    color: AppColors.grey,
+                                    size: 15,
+                                  ),
+                                  onSelected: (String result) {
+                                    if (result == 'delete') {
+                                      Provider.of<ChatProvider>(
+                                        context,
+                                        listen: false,
+                                      ).deleteChat(chat['id']);
+                                    } else if (result == 'download') {
+                                      // Handle download action
+                                    }
+                                  },
+                                  itemBuilder:
+                                      (BuildContext context) => [
+                                        // PopupMenuItem<String>(
+                                        //   value: 'download',
+                                        //   child: Row(
+                                        //     spacing: 5,
+                                        //     children: [
+                                        //       HugeIcon(
+                                        //         icon:
+                                        //             HugeIcons
+                                        //                 .strokeRoundedDownload04,
+                                        //         color: AppColors.grey,
+                                        //         size: 15,
+                                        //       ),
+                                        //       Text(
+                                        //         'Save',
+                                        //         style: AppFonts.primaryFont(
+                                        //           fontSize: 14,
+                                        //         ),
+                                        //       ),
+                                        //     ],
+                                        //   ),
+                                        // ),
+                                        PopupMenuItem<String>(
+                                          value: 'delete',
+                                          child: Row(
+                                            spacing: 5,
+                                            children: [
+                                              HugeIcon(
+                                                size: 15,
+                                                icon:
+                                                    HugeIcons
+                                                        .strokeRoundedDelete01,
+                                                color: AppColors.error,
+                                              ),
+                                              Text(
+                                                'Delete',
+                                                style: AppFonts.primaryFont(
+                                                  color: AppColors.error,
+                                                  fontSize: 14,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                ),
+                              ),
                             );
                           },
                         ),

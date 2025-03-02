@@ -106,6 +106,13 @@ class DatabaseHelper {
     );
   }
 
+  // Delete a chat and its messages
+  Future<void> deleteChat(int chatId) async {
+    final db = await database;
+    await db.delete('chats', where: 'id = ?', whereArgs: [chatId]);
+    await db.delete('messages', where: 'chat_id = ?', whereArgs: [chatId]);
+  }
+
   Future<void> clearChats() async {
     final db = await database;
     await db.delete('chats');
