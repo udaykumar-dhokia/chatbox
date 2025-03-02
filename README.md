@@ -7,7 +7,9 @@
 chatbox is an open-source software that provides a graphical user interface (GUI) for running large language models (LLMs) using the Ollama. This application allows users to interact with various LLM models, send messages, and receive responses in a chat-like interface.
 
 ## Working Demo
-https://github.com/udaykumar-dhokia/chatbox/lib/assets/2.mp4
+![Demo](lib/assets/2.gif)
+
+## Screenshots
 
 ![Chatbox Screenshot](lib/assets/1.png)
 ![Chatbox Screenshot](lib/assets/3.png)
