@@ -1,23 +1,18 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:chatbox/components/predefined_queries.dart';
 import 'package:chatbox/constants/app_colors.dart';
 import 'package:chatbox/constants/app_fonts.dart';
-import 'package:chatbox/helpers/code_block.dart';
+import 'package:chatbox/widgets/code_block.dart';
 import 'package:chatbox/helpers/database_helper.dart';
-import 'package:chatbox/provider/chat_provider.dart';
+import 'package:chatbox/providers/chat_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:chatbox/widgets/message_tile.dart';
 import 'package:chatbox/widgets/input_field.dart';
-import 'package:flutter_pty/flutter_pty.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:ollama_dart/ollama_dart.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:xterm/xterm.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -59,6 +54,7 @@ class _HomepageState extends State<Homepage> {
   }
 
   Future<void> _listModels() async {
+    isLoading = true;
     try {
       final res = await client.listModels();
       setState(() {
@@ -90,6 +86,77 @@ class _HomepageState extends State<Homepage> {
         ),
       );
     });
+  }
+
+  Future<void> _editChatTitle(BuildContext context) async {
+    TextEditingController titleController = TextEditingController(
+      text: chatTitle,
+    );
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          icon: HugeIcon(
+            icon: HugeIcons.strokeRoundedEdit02,
+            color: AppColors.black,
+          ),
+          backgroundColor: AppColors.primary,
+          title: Text(
+            'Edit Chat Title',
+            style: AppFonts.primaryFont(fontSize: 20),
+          ),
+          content: TextField(
+            maxLength: 30,
+            controller: titleController,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(
+                borderSide: BorderSide(color: AppColors.buttonColor),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: AppColors.buttonColor),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              hintText: "Enter new chat title",
+              hintStyle: AppFonts.primaryFont(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel', style: AppFonts.primaryFont()),
+            ),
+            TextButton(
+              style: ButtonStyle(
+                backgroundColor: WidgetStateProperty.all(AppColors.buttonColor),
+              ),
+              onPressed: () async {
+                String newTitle = titleController.text.trim();
+                if (newTitle.isNotEmpty && currentChatId != null) {
+                  await dbHelper.updateChatTitle(currentChatId!, newTitle);
+                  setState(() {
+                    chatTitle = newTitle;
+                  });
+                  Provider.of<ChatProvider>(
+                    context,
+                    listen: false,
+                  ).setChatTitle(newTitle);
+                  Provider.of<ChatProvider>(context, listen: false).loadChats();
+                }
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                'Save',
+                style: AppFonts.primaryFont(color: AppColors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _startNewChat() async {
@@ -132,7 +199,6 @@ class _HomepageState extends State<Homepage> {
     if (currentChatId == null) {
       await _startNewChat();
     }
-    _controller.clear();
 
     await dbHelper.insertMessage(currentChatId!, "You", userMessage);
 
@@ -140,6 +206,7 @@ class _HomepageState extends State<Homepage> {
       _messages.add({'role': 'You', 'message': userMessage});
     });
 
+    _controller.clear();
     _generateCompletion(userMessage);
   }
 
@@ -266,25 +333,28 @@ class _HomepageState extends State<Homepage> {
         ),
       ),
       appBar:
-          models.isNotEmpty
+          models.isNotEmpty && !isLoading
               ? AppBar(
                 automaticallyImplyLeading: false,
                 surfaceTintColor: AppColors.white,
                 toolbarHeight: height * 0.1,
                 backgroundColor: AppColors.primary,
                 centerTitle: true,
-                title: Text(
-                  chatTitle.isNotEmpty ? chatTitle : '',
-                  style: AppFonts.primaryFont(
-                    color: AppColors.black,
-                    fontWeight: FontWeight.bold,
-                    fontSize: width * 0.01,
+                title: InkWell(
+                  onTap: () => {_editChatTitle(context)},
+                  child: Text(
+                    chatTitle.isNotEmpty ? chatTitle : '',
+                    style: AppFonts.primaryFont(
+                      color: AppColors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: width * 0.01,
+                    ),
                   ),
                 ),
               )
               : null,
       body:
-          models.isNotEmpty
+          models.isNotEmpty && !isLoading
               ? Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -353,6 +423,8 @@ class _HomepageState extends State<Homepage> {
                     ),
                 ],
               )
+              : isLoading
+              ? Center(child: CircularProgressIndicator())
               : Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16.0),
