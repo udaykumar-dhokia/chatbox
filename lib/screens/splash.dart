@@ -33,14 +33,12 @@ class _SplashState extends State<Splash> {
         Navigator.pushReplacementNamed(context, '/homepage');
       }
     } catch (e) {
-      print('Error checking Ollama installation: $e');
       Navigator.pushReplacementNamed(context, '/config_ollama');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    var width = MediaQuery.sizeOf(context).width;
     return Scaffold(
       backgroundColor: AppColors.primary,
       body: Center(
@@ -53,14 +51,14 @@ class _SplashState extends State<Splash> {
               children: [
                 HugeIcon(
                   icon: HugeIcons.strokeRoundedCodesandbox,
-                  color: AppColors.buttonColor,
+                  color: AppColors.black,
                   size: 40,
                 ),
                 const SizedBox(width: 4.0),
                 Text(
                   "v1.0.0",
                   style: AppFonts.primaryFont(
-                    color: AppColors.buttonColor.withValues(alpha: 0.3),
+                    color: AppColors.black.withValues(alpha: 0.3),
                   ),
                 ),
               ],

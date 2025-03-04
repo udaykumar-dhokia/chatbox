@@ -1,6 +1,6 @@
 import 'package:chatbox/constants/app_colors.dart';
 import 'package:chatbox/constants/app_fonts.dart';
-import 'package:chatbox/helpers/code_block.dart';
+import 'package:chatbox/widgets/code_block.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 

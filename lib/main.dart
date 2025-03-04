@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:chatbox/layouts/layout.dart';
-import 'package:chatbox/provider/chat_provider.dart';
+import 'package:chatbox/providers/chat_provider.dart';
 import 'package:chatbox/screens/ollama_config.dart';
 import 'package:chatbox/screens/splash.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +17,7 @@ void main() async {
   databaseFactory = databaseFactoryFfi;
 
   if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
-    setWindowTitle('chatbox.');
+    setWindowTitle('chatbox');
     setWindowMinSize(const Size(1600, 1000));
     setWindowMaxSize(Size.infinite);
     setWindowFrame(const Rect.fromLTWH(100, 100, 1280, 720));
