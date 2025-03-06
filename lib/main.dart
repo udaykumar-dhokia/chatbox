@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:chatbox/layouts/layout.dart';
+import 'package:chatbox/providers/app_provider.dart';
 import 'package:chatbox/providers/chat_provider.dart';
 import 'package:chatbox/screens/ollama_config.dart';
 import 'package:chatbox/screens/splash.dart';
@@ -36,7 +37,13 @@ void main() async {
   });
 
   runApp(
-    ChangeNotifierProvider(create: (context) => ChatProvider(), child: MyApp()),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ChatProvider()),
+        ChangeNotifierProvider(create: (context) => AppProvider()),
+      ],
+      child: MyApp(),
+    ),
   );
 }
 
