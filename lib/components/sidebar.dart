@@ -4,6 +4,7 @@ import 'package:chatbox/constants/app_fonts.dart';
 import 'package:chatbox/helpers/pdf_helper.dart';
 import 'package:chatbox/providers/app_provider.dart';
 import 'package:chatbox/providers/chat_provider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
@@ -340,7 +341,13 @@ class _SidebarState extends State<Sidebar> {
               ),
               Consumer<AppProvider>(
                 builder: (context, provider, child) {
-                  return !provider.online
+                  return provider.isLoading
+                      ? Center(
+                        child: CupertinoActivityIndicator(
+                          color: AppColors.grey,
+                        ),
+                      )
+                      : !provider.online
                       ? InkWell(
                         onTap: () {
                           provider.checkLatestVersion();

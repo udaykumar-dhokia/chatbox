@@ -10,11 +10,13 @@ class AppProvider extends ChangeNotifier {
   String _currentVersion = "";
   String _newAppUrl = "";
   bool _online = true;
+  bool _isLoading = false;
 
   String get oldVersion => _oldVersion;
   String get currentVersion => _currentVersion;
   String get newAppUrl => _newAppUrl;
   bool get online => _online;
+  bool get isLoading => _isLoading;
 
   AppProvider() {
     _init();
@@ -29,11 +31,13 @@ class AppProvider extends ChangeNotifier {
 
   Future<void> checkLatestVersion() async {
     var connectivityResult = await (Connectivity().checkConnectivity());
-    print(connectivityResult);
+    _isLoading = true;
     if (connectivityResult[0] == ConnectivityResult.none) {
       // No internet connection
       debugPrint('No internet connection. Skipping version check.');
       _online = false;
+      _isLoading = false;
+      notifyListeners();
       return;
     }
 
@@ -56,6 +60,8 @@ class AppProvider extends ChangeNotifier {
         _newAppUrl = assetDownloadUrl.toString();
       }
 
+      _isLoading = false;
+
       notifyListeners();
 
       if (_currentVersion != _oldVersion) {
@@ -65,6 +71,7 @@ class AppProvider extends ChangeNotifier {
       debugPrint(
         'Failed to fetch GitHub release info. Status code: ${response.statusCode}',
       );
+      _isLoading = false;
     }
   }
 
