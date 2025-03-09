@@ -42,7 +42,7 @@ class AppProvider extends ChangeNotifier {
     }
 
     const repositoryOwner = 'udaykumar-dhokia';
-    const repositoryName = 'demo';
+    const repositoryName = 'chatbox';
     final response = await http.get(
       Uri.parse(
         'https://api.github.com/repos/$repositoryOwner/$repositoryName/releases/latest',
