@@ -15,13 +15,13 @@ void main() async {
   databaseFactory = databaseFactoryFfi;
 
   WindowOptions windowOptions = WindowOptions(
-    size: Size(1600, 900),
+    size: Size(1400, 800),
     center: false,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
     windowButtonVisibility: true,
-    minimumSize: Size(1600, 900),
+    minimumSize: Size(1400, 800),
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
