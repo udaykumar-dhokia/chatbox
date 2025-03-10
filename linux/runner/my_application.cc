@@ -20,6 +20,13 @@ static void my_application_activate(GApplication* application) {
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
+  GdkPixbuf* icon = gdk_pixbuf_new_from_file("/lib/assets/chatbox.png", NULL);
+  if (icon != NULL) {
+    gtk_window_set_icon(GTK_WINDOW(window), icon);
+    g_object_unref(icon);
+  }
+    
+
   // Use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu
   // desktop).
@@ -47,7 +54,13 @@ static void my_application_activate(GApplication* application) {
     gtk_window_set_title(window, "chatbox");
   }
 
-  gtk_window_set_default_size(window, 1280, 720);
+  // Set the minimum size of the window
+  GdkGeometry hints;
+  hints.min_width = 1600;
+  hints.min_height = 900;
+  gtk_window_set_geometry_hints(window, NULL, &hints, GDK_HINT_MIN_SIZE);
+
+  gtk_window_set_default_size(window, 1600, 900);
   gtk_widget_realize(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();

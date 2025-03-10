@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:chatbox/constants/app_colors.dart';
 import 'package:chatbox/constants/app_fonts.dart';
 import 'package:chatbox/helpers/pdf_helper.dart';
+import 'package:chatbox/providers/app_provider.dart';
 import 'package:chatbox/providers/chat_provider.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
@@ -336,6 +338,108 @@ class _SidebarState extends State<Sidebar> {
                     ),
                   ),
                 ],
+              ),
+              Consumer<AppProvider>(
+                builder: (context, provider, child) {
+                  return provider.isLoading
+                      ? Center(
+                        child: CupertinoActivityIndicator(
+                          color: AppColors.grey,
+                        ),
+                      )
+                      : !provider.online
+                      ? InkWell(
+                        onTap: () {
+                          provider.checkLatestVersion();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.grey.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            spacing: 5,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                                color: AppColors.black,
+                                size: 15,
+                              ),
+                              Text(
+                                "v${provider.currentVersion}",
+                                style: AppFonts.primaryFont(
+                                  color: AppColors.black,
+                                  fontSize: (width * 0.13) * 0.05,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      : provider.currentVersion != provider.oldVersion
+                      ? InkWell(
+                        onTap: () {
+                          _launchUrl(provider.newAppUrl);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.buttonColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            spacing: 5,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedReload,
+                                color: AppColors.white,
+                                size: 15,
+                              ),
+                              Text(
+                                "Update Available",
+                                style: AppFonts.primaryFont(
+                                  color: AppColors.white,
+                                  fontSize: (width * 0.13) * 0.05,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      : InkWell(
+                        onTap: () {
+                          provider.checkLatestVersion();
+                        },
+                        child: Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppColors.grey.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Row(
+                            spacing: 5,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              HugeIcon(
+                                icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+                                color: AppColors.black,
+                                size: 15,
+                              ),
+                              Text(
+                                "v${provider.currentVersion}",
+                                style: AppFonts.primaryFont(
+                                  color: AppColors.black,
+                                  fontSize: (width * 0.13) * 0.05,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                },
               ),
             ],
           ),

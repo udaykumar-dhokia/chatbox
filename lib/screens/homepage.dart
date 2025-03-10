@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:chatbox/components/predefined_queries.dart';
 import 'package:chatbox/constants/app_colors.dart';
 import 'package:chatbox/constants/app_fonts.dart';
+import 'package:chatbox/providers/app_provider.dart';
 import 'package:chatbox/widgets/code_block.dart';
 import 'package:chatbox/helpers/database_helper.dart';
 import 'package:chatbox/providers/chat_provider.dart';

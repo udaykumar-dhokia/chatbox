@@ -1,6 +1,5 @@
-import 'dart:io';
-
 import 'package:chatbox/layouts/layout.dart';
+import 'package:chatbox/providers/app_provider.dart';
 import 'package:chatbox/providers/chat_provider.dart';
 import 'package:chatbox/screens/ollama_config.dart';
 import 'package:chatbox/screens/splash.dart';
@@ -8,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:window_size/window_size.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,27 +14,29 @@ void main() async {
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
 
-  if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
-    setWindowTitle('chatbox');
-    setWindowMinSize(const Size(1600, 1000));
-    setWindowMaxSize(Size.infinite);
-    setWindowFrame(const Rect.fromLTWH(100, 100, 1280, 720));
-  }
-
   WindowOptions windowOptions = WindowOptions(
-    minimumSize: Size(800, 600),
-    center: true,
+    size: Size(1400, 800),
+    center: false,
     backgroundColor: Colors.transparent,
     skipTaskbar: false,
     titleBarStyle: TitleBarStyle.normal,
+    windowButtonVisibility: true,
+    minimumSize: Size(1400, 800),
   );
   windowManager.waitUntilReadyToShow(windowOptions, () async {
     await windowManager.show();
     await windowManager.focus();
+    await windowManager.setAlignment(Alignment.topLeft, animate: true);
   });
 
   runApp(
-    ChangeNotifierProvider(create: (context) => ChatProvider(), child: MyApp()),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ChatProvider()),
+        ChangeNotifierProvider(create: (context) => AppProvider()),
+      ],
+      child: MyApp(),
+    ),
   );
 }
 
