@@ -76,8 +76,9 @@ class AppProvider extends ChangeNotifier {
   }
 
   void checkUpdate() {
-    print("Not up to date");
-    print(newAppUrl);
+    if (_currentVersion != _oldVersion) {
+      launchUpdateUrl();
+    }
   }
 
   Future<void> launchUpdateUrl() async {

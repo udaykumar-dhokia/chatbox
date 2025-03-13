@@ -48,8 +48,8 @@ class _SidebarState extends State<Sidebar> {
       final pdfHelper = PdfHelper();
       await pdfHelper.saveChatToPdf(chatTitle, messages);
 
-      final output = await getTemporaryDirectory();
-      final file = File('${output.path}/$chatTitle.pdf');
+      final output = await getDownloadsDirectory();
+      final file = File('${output!.path}/$chatTitle.pdf');
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Saved to ${file.path}')));
