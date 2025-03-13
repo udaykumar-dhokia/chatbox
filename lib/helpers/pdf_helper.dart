@@ -23,7 +23,7 @@ class PdfHelper {
       ),
     );
 
-    const int maxMessagesPerPage = 40; // Adjust this value as needed
+    const int maxMessagesPerPage = 40;
     int currentPage = 0;
 
     while (currentPage * maxMessagesPerPage < messages.length) {
@@ -64,7 +64,7 @@ class PdfHelper {
                         pw.SizedBox(height: 10),
                       ],
                     );
-                  }).toList(),
+                  }),
                 ],
               ),
             ];
@@ -75,7 +75,8 @@ class PdfHelper {
       currentPage++;
     }
 
-    final output = await getApplicationDocumentsDirectory();
+    final output = await getDownloadsDirectory();
+    print(output);
     final file = File('${output!.path}/$chatTitle.pdf');
     await file.writeAsBytes(await pdf.save());
   }
